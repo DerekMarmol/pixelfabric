@@ -1,0 +1,252 @@
+package com.pixelfabric.entity.custom;
+
+import net.minecraft.entity.*;
+import net.minecraft.entity.ai.goal.*;
+import net.minecraft.entity.ai.pathing.BirdNavigation;
+import net.minecraft.entity.ai.pathing.EntityNavigation;
+import net.minecraft.entity.attribute.DefaultAttributeContainer;
+import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.data.DataTracker;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
+import net.minecraft.entity.mob.FlyingEntity;
+import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.*;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
+import java.util.EnumSet;
+
+public class SkullEntity extends FlyingEntity implements GeoEntity {
+    private static final TrackedData<Boolean> ATTACHED = DataTracker.registerData(SkullEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final TrackedData<Integer> SPACE_COUNTER = DataTracker.registerData(SkullEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private static final int MAX_SPACE_COUNTER = 35;
+    private static final int EXPLOSION_TIME = 170; // 8.5 segundos (170 ticks)
+
+    private int explosionTimer;
+    private PlayerEntity attachedPlayer;
+    private boolean hasExploded = false;
+
+    public SkullEntity(EntityType<? extends FlyingEntity> entityType, World world) {
+        super(entityType, world);
+        this.explosionTimer = EXPLOSION_TIME;
+    }
+
+    public static DefaultAttributeContainer.Builder createSkullAttributes() {
+        return MobEntity.createMobAttributes()
+                .add(EntityAttributes.GENERIC_MAX_HEALTH, 20.0D)
+                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.8D) // Aumenta velocidad de movimiento
+                .add(EntityAttributes.GENERIC_FLYING_SPEED, 1.2D)  // Aumenta velocidad de vuelo
+                .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 32.0D)
+                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 6.0D);
+    }
+
+    @Override
+    protected EntityNavigation createNavigation(World world) {
+        BirdNavigation birdNavigation = new BirdNavigation(this, world);
+        birdNavigation.setCanPathThroughDoors(true);
+        birdNavigation.setCanSwim(true);
+        return birdNavigation;
+    }
+
+    @Override
+    protected void initDataTracker() {
+        super.initDataTracker();
+        this.dataTracker.startTracking(ATTACHED, false);
+        this.dataTracker.startTracking(SPACE_COUNTER, 0);
+    }
+
+    @Override
+    protected void initGoals() {
+        this.goalSelector.add(2, new CustomFlyGoal(this, 1.2D)); // Usamos el objetivo personalizado de vuelo
+        this.targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
+    }
+
+
+    @Override
+    public void tick() {
+        super.tick();
+
+        if (!this.getWorld().isClient) {
+            if (!this.isAttached()) {
+                PlayerEntity nearestPlayer = this.getWorld().getClosestPlayer(this, 2.0D);
+                if (nearestPlayer != null && !nearestPlayer.isCreative()) {
+                    this.setAttached(true);
+                    this.attachedPlayer = nearestPlayer;
+                    this.explosionTimer = EXPLOSION_TIME;
+                    this.setSpaceCounter(0);
+                    this.hasExploded = false;
+                }
+            } else if (this.attachedPlayer != null && this.attachedPlayer.isAlive()) {
+                this.setPosition(this.attachedPlayer.getX(), this.attachedPlayer.getY() + 2, this.attachedPlayer.getZ());
+
+                if (this.explosionTimer > 0) {
+                    this.explosionTimer--;
+
+                    // Enviar mensaje de advertencia cada segundo (20 ticks)
+                    if (this.explosionTimer % 20 == 0) {
+                        sendWarningMessage();
+                    }
+                }
+
+                if (this.explosionTimer <= 0 && !this.hasExploded) {
+                    this.explode();
+                    this.hasExploded = true;
+                }
+            } else {
+                resetState();
+            }
+        }
+    }
+
+    private void sendWarningMessage() {
+        if (this.attachedPlayer instanceof ServerPlayerEntity serverPlayer) {
+            float progress = (float)this.getSpaceCounter() / MAX_SPACE_COUNTER;
+            int clicksLeft = MAX_SPACE_COUNTER - this.getSpaceCounter();
+            double secondsLeft = this.explosionTimer / 20.0;
+
+            int filledBars = (int)(progress * 10);
+            String progressBar = "§a" + "■".repeat(filledBars) +
+                    "§7" + "■".repeat(10 - filledBars);
+
+            Text message = Text.literal(String.format(
+                    "§c¡CALAVERA EXPLOSIVA! §f%d clicks restantes §7(%.1f s) §8[%s§8]",
+                    clicksLeft,
+                    secondsLeft,
+                    progressBar
+            ));
+
+            serverPlayer.sendMessage(message, true);
+        }
+    }
+
+
+    public void handleSpacePress() {
+        if (this.isAttached() && !this.hasExploded) {
+            int counter = this.getSpaceCounter() + 1;
+            this.setSpaceCounter(counter);
+
+            if (counter >= MAX_SPACE_COUNTER) {
+                resetState();
+                if (this.attachedPlayer instanceof ServerPlayerEntity serverPlayer) {
+                    serverPlayer.sendMessage(Text.literal("§a¡Te has liberado de la calavera explosiva!"), true);
+                }
+            }
+        }
+    }
+
+    private void resetState() {
+        this.setAttached(false);
+        this.attachedPlayer = null;
+        this.explosionTimer = EXPLOSION_TIME;
+        this.setSpaceCounter(0);
+        this.hasExploded = false;
+    }
+
+    private void explode() {
+        if (!this.getWorld().isClient && !this.hasExploded) {
+            this.getWorld().createExplosion(this, this.getX(), this.getY(), this.getZ(), 3.0F, World.ExplosionSourceType.MOB);
+            this.remove(RemovalReason.KILLED);
+        }
+    }
+
+    public boolean isAttached() {
+        return this.dataTracker.get(ATTACHED);
+    }
+
+    public void setAttached(boolean attached) {
+        this.dataTracker.set(ATTACHED, attached);
+    }
+
+    public int getSpaceCounter() {
+        return this.dataTracker.get(SPACE_COUNTER);
+    }
+
+    public void setSpaceCounter(int count) {
+        this.dataTracker.set(SPACE_COUNTER, count);
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+        controllerRegistrar.add(new AnimationController<>(this, "controller", 0, this::predicate));
+    }
+
+    private PlayState predicate(AnimationState<SkullEntity> state) {
+        if (this.isAttached()) {
+            state.getController().setAnimation(RawAnimation.begin().then("animation.skull.idle", Animation.LoopType.LOOP));
+        } else {
+            state.getController().setAnimation(RawAnimation.begin().then("animation.skull.walk", Animation.LoopType.LOOP));
+        }
+        return PlayState.CONTINUE;
+    }
+
+    @Override
+    public void readCustomDataFromNbt(NbtCompound nbt) {
+        super.readCustomDataFromNbt(nbt);
+        this.setAttached(nbt.getBoolean("Attached"));
+        this.setSpaceCounter(nbt.getInt("SpaceCounter"));
+        this.explosionTimer = nbt.getInt("ExplosionTimer");
+        this.hasExploded = nbt.getBoolean("HasExploded");
+    }
+
+    @Override
+    public void writeCustomDataToNbt(NbtCompound nbt) {
+        super.writeCustomDataToNbt(nbt);
+        nbt.putBoolean("Attached", this.isAttached());
+        nbt.putInt("SpaceCounter", this.getSpaceCounter());
+        nbt.putInt("ExplosionTimer", this.explosionTimer);
+        nbt.putBoolean("HasExploded", this.hasExploded);
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.cache;
+    }
+
+    public class CustomFlyGoal extends Goal {
+        private final SkullEntity skull;
+        private final double speed;
+
+        public CustomFlyGoal(SkullEntity skull, double speed) {
+            this.skull = skull;
+            this.speed = speed;
+            this.setControls(EnumSet.of(Control.MOVE));
+        }
+
+        @Override
+        public boolean canStart() {
+            PlayerEntity closestPlayer = this.skull.getWorld().getClosestPlayer(this.skull, 20.0D);
+            return closestPlayer != null;
+        }
+
+        @Override
+        public void tick() {
+            PlayerEntity target = this.skull.getWorld().getClosestPlayer(this.skull, 20.0D);
+            if (target != null) {
+                double deltaX = target.getX() - this.skull.getX();
+                double deltaY = target.getY() - this.skull.getY();
+                double deltaZ = target.getZ() - this.skull.getZ();
+                double distance = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
+
+                if (distance >= 1E-7D) {
+                    float angle = (float) (MathHelper.atan2(deltaZ, deltaX) * 57.2957763671875D) - 90.0F;
+                    this.skull.setYaw(angle);
+                    this.skull.bodyYaw = this.skull.getYaw();
+
+                    double speedFactor = this.speed * this.skull.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_MOVEMENT_SPEED);
+                    this.skull.setVelocity(this.skull.getVelocity().add(deltaX / distance * speedFactor * 0.05D, deltaY * speedFactor * 0.05D, deltaZ / distance * speedFactor * 0.05D));
+                }
+            }
+        }
+    }
+}

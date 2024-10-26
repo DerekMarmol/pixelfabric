@@ -1,0 +1,151 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.creeper_pet",
+				"texture_width": 32,
+				"texture_height": 32,
+				"visible_bounds_width": 2,
+				"visible_bounds_height": 2.5,
+				"visible_bounds_offset": [0, 0.75, 0]
+			},
+			"bones": [
+				{
+					"name": "creeper_pet",
+					"pivot": [0, 0, 0]
+				},
+				{
+					"name": "left_foot_front",
+					"parent": "creeper_pet",
+					"pivot": [1.75, 3, -2],
+					"rotation": [0, -22.5, 0],
+					"cubes": [
+						{
+							"origin": [0.25, 0, -5],
+							"size": [3, 4, 3],
+							"uv": {
+								"north": {"uv": [21.032, 19.032], "uv_size": [2.936, 3.936]},
+								"east": {"uv": [14.032, 23.032], "uv_size": [2.936, 3.936]},
+								"south": {"uv": [18.032, 24.032], "uv_size": [2.936, 3.936]},
+								"west": {"uv": [22.032, 24.032], "uv_size": [2.936, 3.936]},
+								"up": {"uv": [25.032, 10.032], "uv_size": [2.936, 2.936]},
+								"down": {"uv": [26.032, 26.968], "uv_size": [2.936, -2.936]}
+							}
+						}
+					]
+				},
+				{
+					"name": "right_foot_front",
+					"parent": "creeper_pet",
+					"pivot": [-1.75, 3, -2],
+					"rotation": [0, 22.5, 0],
+					"cubes": [
+						{
+							"origin": [-3.25, 0, -5],
+							"size": [3, 4, 3],
+							"uv": {
+								"north": {"uv": [23.968, 19.032], "uv_size": [-2.936, 3.936]},
+								"east": {"uv": [24.968, 24.032], "uv_size": [-2.936, 3.936]},
+								"south": {"uv": [20.968, 24.032], "uv_size": [-2.936, 3.936]},
+								"west": {"uv": [16.968, 23.032], "uv_size": [-2.936, 3.936]},
+								"up": {"uv": [27.968, 10.032], "uv_size": [-2.936, 2.936]},
+								"down": {"uv": [28.968, 26.968], "uv_size": [-2.936, -2.936]}
+							}
+						}
+					]
+				},
+				{
+					"name": "left_foot_back",
+					"parent": "creeper_pet",
+					"pivot": [1.75, 3, 2],
+					"rotation": [0, 22.5, 0],
+					"cubes": [
+						{
+							"origin": [0.25, 0, 2],
+							"size": [3, 4, 3],
+							"uv": {
+								"north": {"uv": [25.032, 0.032], "uv_size": [2.936, 3.936]},
+								"east": {"uv": [25.032, 5.032], "uv_size": [2.936, 3.936]},
+								"south": {"uv": [9.032, 25.032], "uv_size": [2.936, 3.936]},
+								"west": {"uv": [25.032, 19.032], "uv_size": [2.936, 3.936]},
+								"up": {"uv": [0.032, 27.032], "uv_size": [2.936, 2.936]},
+								"down": {"uv": [4.032, 29.968], "uv_size": [2.936, -2.936]}
+							}
+						}
+					]
+				},
+				{
+					"name": "right_foot_back",
+					"parent": "creeper_pet",
+					"pivot": [-1.75, 3, 2],
+					"rotation": [0, -22.5, 0],
+					"cubes": [
+						{
+							"origin": [-3.25, 0, 2],
+							"size": [3, 4, 3],
+							"uv": {
+								"north": {"uv": [27.968, 0.032], "uv_size": [-2.936, 3.936]},
+								"east": {"uv": [27.968, 19.032], "uv_size": [-2.936, 3.936]},
+								"south": {"uv": [11.968, 25.032], "uv_size": [-2.936, 3.936]},
+								"west": {"uv": [27.968, 5.032], "uv_size": [-2.936, 3.936]},
+								"up": {"uv": [2.968, 27.032], "uv_size": [-2.936, 2.936]},
+								"down": {"uv": [6.968, 29.968], "uv_size": [-2.936, -2.936]}
+							}
+						}
+					]
+				},
+				{
+					"name": "torso",
+					"parent": "creeper_pet",
+					"pivot": [0, 3, 0],
+					"cubes": [
+						{
+							"origin": [-3, 3, -2],
+							"size": [6, 6, 4],
+							"uv": {
+								"north": {"uv": [18.032, 0.032], "uv_size": [5.936, 5.936]},
+								"east": {"uv": [12.968, 18.032], "uv_size": [-3.936, 5.936]},
+								"south": {"uv": [18.032, 7.032], "uv_size": [5.936, 5.936]},
+								"west": {"uv": [9.032, 18.032], "uv_size": [3.936, 5.936]},
+								"up": {"uv": [14.032, 18.032], "uv_size": [5.936, 3.936]},
+								"down": {"uv": [21.032, 17.968], "uv_size": [5.936, -3.936]}
+							}
+						}
+					]
+				},
+				{
+					"name": "h_head",
+					"parent": "torso",
+					"pivot": [0, 9, 0],
+					"cubes": [
+						{
+							"origin": [-4, 9, -4],
+							"size": [8, 8, 8],
+							"uv": {
+								"north": {"uv": [0.032, 0.032], "uv_size": [7.936, 7.936]},
+								"east": {"uv": [16.968, 0.032], "uv_size": [-7.936, 7.936]},
+								"south": {"uv": [0.032, 9.032], "uv_size": [7.936, 7.936]},
+								"west": {"uv": [9.032, 0.032], "uv_size": [7.936, 7.936]},
+								"up": {"uv": [9.032, 9.032], "uv_size": [7.936, 7.936]},
+								"down": {"uv": [0.032, 25.968], "uv_size": [7.936, -7.936]}
+							}
+						}
+					]
+				},
+				{
+					"name": "hitbox",
+					"parent": "creeper_pet",
+					"pivot": [0, 14, 0],
+					"cubes": [
+						{
+							"origin": [-4.5, 0, -4.5],
+							"size": [9, 18, 9],
+							"uv": {}
+						}
+					]
+				}
+			]
+		}
+	]
+}

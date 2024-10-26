@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "package": "com.pixelfabric.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "AbstractBlockStateMixin",
+    "BlazeProjectileMixin",
+    "ChunkLightProviderMixin",
+    "ExampleMixin",
+    "FoodItemMixin",
+    "LivingEntityMixin",
+    "MobEntityMixin",
+    "ShieldItemMixin",
+    "BarrierBlockMixin",
+    "ZombieDamageMixin",
+    "ZombieSunBurnMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+	}
+}
