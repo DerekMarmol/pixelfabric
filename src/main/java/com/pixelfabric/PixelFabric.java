@@ -13,6 +13,7 @@ import com.pixelfabric.missions.KillZombiesMission;
 import com.pixelfabric.missions.MissionManager;
 import com.pixelfabric.network.ModMessages;
 import com.pixelfabric.world.gen.ModWorldGeneration;
+import com.updater.ModAutoUpdater;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
@@ -51,6 +52,8 @@ public class PixelFabric implements ModInitializer {
 		CustomEventSystem.initialize();
 		UnstableShields.init();
 		ZombieEnhancementMechanic.init();
+		ModAutoUpdater updater = new ModAutoUpdater();
+		updater.checkForUpdates();
 		KillEventHandler.register();
 		BadFoodMode.init();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
