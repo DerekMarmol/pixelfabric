@@ -1,0 +1,4 @@
+{
+  "version": "1.1.0",
+  "download_url": "https://github.com/DerekMarmol/pixelfabric/releases/download/v1.1.0/pixelfabric-1.1.0.jar"
+}
