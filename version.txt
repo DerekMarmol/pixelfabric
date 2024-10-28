@@ -1,4 +1,4 @@
 {
-  "version": "1.0.2",
-  "download_url": "https://github.com/DerekMarmol/pixelfabric/releases/download/v2.0/pixelfabric-1.0.2.jar"
+  "version": "1.0.3",
+  "download_url": "https://github.com/DerekMarmol/pixelfabric/releases/download/v3.0/pixelfabric-1.0.3.jar"
 }
