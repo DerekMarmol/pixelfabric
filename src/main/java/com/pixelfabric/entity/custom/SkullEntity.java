@@ -6,6 +6,7 @@ import net.minecraft.entity.ai.pathing.BirdNavigation;
 import net.minecraft.entity.ai.pathing.EntityNavigation;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
@@ -16,6 +17,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -31,22 +33,33 @@ public class SkullEntity extends FlyingEntity implements GeoEntity {
     private static final TrackedData<Integer> SPACE_COUNTER = DataTracker.registerData(SkullEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final int MAX_SPACE_COUNTER = 35;
-    private static final int EXPLOSION_TIME = 170; // 8.5 segundos (170 ticks)
+    private static final int EXPLOSION_TIME = 170; // 8.5 segundos
+    private static final double LAUNCH_DISTANCE = 8.0; // Distancia a la que será lanzada (bloques)
+    private static final double LAUNCH_SPEED = 1.2; // Velocidad de lanzamiento
 
     private int explosionTimer;
     private PlayerEntity attachedPlayer;
     private boolean hasExploded = false;
+    private boolean isLaunched = false;
+    private int launchTicks = 0;
+    private static final int EXPLOSION_DELAY = 15; // Ticks antes de explotar después del lanzamiento
 
     public SkullEntity(EntityType<? extends FlyingEntity> entityType, World world) {
         super(entityType, world);
         this.explosionTimer = EXPLOSION_TIME;
     }
 
+    @Override
+    public boolean isInvulnerableTo(DamageSource damageSource) {
+        // Invulnerable mientras está pegada o siendo lanzada
+        return this.isAttached() || this.isLaunched || super.isInvulnerableTo(damageSource);
+    }
+
     public static DefaultAttributeContainer.Builder createSkullAttributes() {
         return MobEntity.createMobAttributes()
                 .add(EntityAttributes.GENERIC_MAX_HEALTH, 20.0D)
-                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.8D) // Aumenta velocidad de movimiento
-                .add(EntityAttributes.GENERIC_FLYING_SPEED, 1.2D)  // Aumenta velocidad de vuelo
+                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.8D)
+                .add(EntityAttributes.GENERIC_FLYING_SPEED, 1.2D)
                 .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 32.0D)
                 .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 6.0D);
     }
@@ -68,16 +81,23 @@ public class SkullEntity extends FlyingEntity implements GeoEntity {
 
     @Override
     protected void initGoals() {
-        this.goalSelector.add(2, new CustomFlyGoal(this, 1.2D)); // Usamos el objetivo personalizado de vuelo
+        this.goalSelector.add(2, new CustomFlyGoal(this, 1.2D));
         this.targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
     }
-
 
     @Override
     public void tick() {
         super.tick();
 
         if (!this.getWorld().isClient) {
+            if (this.isLaunched) {
+                this.launchTicks++;
+                if (this.launchTicks >= EXPLOSION_DELAY) {
+                    this.explode();
+                }
+                return;
+            }
+
             if (!this.isAttached()) {
                 PlayerEntity nearestPlayer = this.getWorld().getClosestPlayer(this, 2.0D);
                 if (nearestPlayer != null && !nearestPlayer.isCreative()) {
@@ -89,11 +109,11 @@ public class SkullEntity extends FlyingEntity implements GeoEntity {
                 }
             } else if (this.attachedPlayer != null && this.attachedPlayer.isAlive()) {
                 this.setPosition(this.attachedPlayer.getX(), this.attachedPlayer.getY() + 2, this.attachedPlayer.getZ());
+                this.setVelocity(0, 0, 0);
 
                 if (this.explosionTimer > 0) {
                     this.explosionTimer--;
 
-                    // Enviar mensaje de advertencia cada segundo (20 ticks)
                     if (this.explosionTimer % 20 == 0) {
                         sendWarningMessage();
                     }
@@ -130,27 +150,56 @@ public class SkullEntity extends FlyingEntity implements GeoEntity {
         }
     }
 
-
     public void handleSpacePress() {
         if (this.isAttached() && !this.hasExploded) {
             int counter = this.getSpaceCounter() + 1;
             this.setSpaceCounter(counter);
 
             if (counter >= MAX_SPACE_COUNTER) {
-                resetState();
-                if (this.attachedPlayer instanceof ServerPlayerEntity serverPlayer) {
-                    serverPlayer.sendMessage(Text.literal("§a¡Te has liberado de la calavera explosiva!"), true);
-                }
+                launchAndExplode();
             }
         }
     }
 
+    private void launchAndExplode() {
+        if (this.attachedPlayer != null) {
+            // Obtener la dirección hacia donde mira el jugador
+            Vec3d lookVec = this.attachedPlayer.getRotationVector();
+
+            // Calcular la posición objetivo basada en la dirección del jugador
+            double targetX = this.attachedPlayer.getX() + lookVec.x * LAUNCH_DISTANCE;
+            double targetY = this.attachedPlayer.getY() + lookVec.y * LAUNCH_DISTANCE + 1.0; // +1.0 para compensar la gravedad
+            double targetZ = this.attachedPlayer.getZ() + lookVec.z * LAUNCH_DISTANCE;
+
+            // Calcular el vector de velocidad
+            Vec3d velocity = new Vec3d(
+                    lookVec.x * LAUNCH_SPEED,
+                    lookVec.y * LAUNCH_SPEED,
+                    lookVec.z * LAUNCH_SPEED
+            );
+
+            // Aplicar el lanzamiento
+            this.setAttached(false);
+            this.setVelocity(velocity);
+            this.isLaunched = true;
+            this.launchTicks = 0;
+
+            // Notificar al jugador
+            if (this.attachedPlayer instanceof ServerPlayerEntity serverPlayer) {
+                serverPlayer.sendMessage(Text.literal("§a¡Has lanzado la calavera explosiva!"), true);
+            }
+            this.attachedPlayer = null;
+        }
+    }
+
     private void resetState() {
-        this.setAttached(false);
-        this.attachedPlayer = null;
-        this.explosionTimer = EXPLOSION_TIME;
-        this.setSpaceCounter(0);
-        this.hasExploded = false;
+        if (!this.isLaunched) {
+            this.setAttached(false);
+            this.explosionTimer = EXPLOSION_TIME;
+            this.setSpaceCounter(0);
+            this.hasExploded = false;
+            this.attachedPlayer = null;
+        }
     }
 
     private void explode() {
@@ -197,6 +246,8 @@ public class SkullEntity extends FlyingEntity implements GeoEntity {
         this.setSpaceCounter(nbt.getInt("SpaceCounter"));
         this.explosionTimer = nbt.getInt("ExplosionTimer");
         this.hasExploded = nbt.getBoolean("HasExploded");
+        this.isLaunched = nbt.getBoolean("IsLaunched");
+        this.launchTicks = nbt.getInt("LaunchTicks");
     }
 
     @Override
@@ -206,6 +257,8 @@ public class SkullEntity extends FlyingEntity implements GeoEntity {
         nbt.putInt("SpaceCounter", this.getSpaceCounter());
         nbt.putInt("ExplosionTimer", this.explosionTimer);
         nbt.putBoolean("HasExploded", this.hasExploded);
+        nbt.putBoolean("IsLaunched", this.isLaunched);
+        nbt.putInt("LaunchTicks", this.launchTicks);
     }
 
     @Override
@@ -225,26 +278,32 @@ public class SkullEntity extends FlyingEntity implements GeoEntity {
 
         @Override
         public boolean canStart() {
-            PlayerEntity closestPlayer = this.skull.getWorld().getClosestPlayer(this.skull, 20.0D);
-            return closestPlayer != null;
+            return !skull.isLaunched && !skull.isAttached() &&
+                    skull.getWorld().getClosestPlayer(skull, 20.0D) != null;
         }
 
         @Override
         public void tick() {
-            PlayerEntity target = this.skull.getWorld().getClosestPlayer(this.skull, 20.0D);
+            if (skull.isLaunched || skull.isAttached()) return;
+
+            PlayerEntity target = skull.getWorld().getClosestPlayer(skull, 20.0D);
             if (target != null) {
-                double deltaX = target.getX() - this.skull.getX();
-                double deltaY = target.getY() - this.skull.getY();
-                double deltaZ = target.getZ() - this.skull.getZ();
+                double deltaX = target.getX() - skull.getX();
+                double deltaY = target.getY() - skull.getY();
+                double deltaZ = target.getZ() - skull.getZ();
                 double distance = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
 
                 if (distance >= 1E-7D) {
                     float angle = (float) (MathHelper.atan2(deltaZ, deltaX) * 57.2957763671875D) - 90.0F;
-                    this.skull.setYaw(angle);
-                    this.skull.bodyYaw = this.skull.getYaw();
+                    skull.setYaw(angle);
+                    skull.bodyYaw = skull.getYaw();
 
-                    double speedFactor = this.speed * this.skull.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_MOVEMENT_SPEED);
-                    this.skull.setVelocity(this.skull.getVelocity().add(deltaX / distance * speedFactor * 0.05D, deltaY * speedFactor * 0.05D, deltaZ / distance * speedFactor * 0.05D));
+                    double speedFactor = speed * skull.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+                    skull.setVelocity(skull.getVelocity().add(
+                            deltaX / distance * speedFactor * 0.05D,
+                            deltaY * speedFactor * 0.05D,
+                            deltaZ / distance * speedFactor * 0.05D
+                    ));
                 }
             }
         }

@@ -1,13 +1,8 @@
 package com.pixelfabric.entity.custom;
 
-import com.pixelfabric.missions.MissionManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import software.bernie.geckolib.animatable.GeoEntity;

@@ -1,0 +1,6 @@
+{
+  "parent":"minecraft:block/cube_all",
+  "textures": {
+    "all": "pixelfabric:block/withe_netherite_block"
+  }
+}

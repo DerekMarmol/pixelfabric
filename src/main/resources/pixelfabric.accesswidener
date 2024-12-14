@@ -1,0 +1,9 @@
+accessWidener v2 named
+
+accessible class net/minecraft/client/render/RenderLayer$MultiPhase
+accessible class net/minecraft/client/render/RenderLayer$MultiPhaseParameters
+accessible field net/minecraft/entity/mob/MobEntity goalSelector Lnet/minecraft/entity/ai/goal/GoalSelector;
+accessible field net/minecraft/entity/mob/MobEntity targetSelector Lnet/minecraft/entity/ai/goal/GoalSelector;
+accessible method net/minecraft/client/gui/screen/Screen clearChildren ()V
+accessible field net/minecraft/world/SpawnHelper CHUNK_AREA I
+accessible method net/minecraft/block/entity/AbstractFurnaceBlockEntity isBurning ()Z

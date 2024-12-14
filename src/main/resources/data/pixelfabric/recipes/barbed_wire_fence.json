@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "XXX",
+    "DDD",
+    "III"
+  ],
+  "key": {
+    "X": {
+      "item": "pixelfabric:bone_spider_jawbone"
+    },
+    "D": {
+      "item": "minecraft:iron_bars"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "pixelfabric:barbed_wire_fence"
+  }
+}

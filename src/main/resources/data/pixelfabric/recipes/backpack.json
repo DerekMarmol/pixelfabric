@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "XAX",
+    "DCD",
+    "XAX"
+  ],
+  "key": {
+    "X": {
+      "item": "minecraft:leather"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    },
+    "A": {
+      "item": "minecraft:string"
+    },
+    "D": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "pixelfabric:backpack",
+    "count": 1
+  },
+  "show_notification": true
+}

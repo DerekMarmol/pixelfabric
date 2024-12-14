@@ -1,0 +1,9 @@
+{
+  "parent": "pixelfabric:custom/runacelest",
+  "textures": {
+    "all": "pixelfabric:block/runacelest",
+    "particle": "pixelfabric:block/runacelest",
+    "1": "pixelfabric:block/runacelest"
+  },
+  "render_type": "solid"
+}

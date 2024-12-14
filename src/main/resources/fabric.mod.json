@@ -3,7 +3,8 @@
 	"id": "pixelfabric",
 	"version": "${version}",
 	"name": "PixelFabric",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Mod inspirado en el dedsafio con toques de originalidad propia",
+	"accessWidener": "pixelfabric.accesswidener",
 	"authors": [
 		"Derek"
 	],
@@ -23,6 +24,9 @@
 		],
 		"client": [
 			"com.pixelfabric.PixelFabricClient"
+		],
+		"cardinal-components": [
+			"com.pixelfabric.data.Components"
 		]
 	},
 	"mixins": [
@@ -37,5 +41,10 @@
 	},
 	"suggests": {
 		"another-mod": "*"
+	},
+	"custom": {
+		"cardinal-components": [
+			"pixelfabric:player_health"
+		]
 	}
 }

@@ -1,26 +1,130 @@
 {
   "item.pixelfabric.ruby": "Rubí",
   "item.pixelfabric.raw_ruby": "Rubí Bruto",
+
   "itemgroup.ruby": "Página 1: Saioux",
+
   "item.pixelfabric.soldier_bee_spawn_egg": "Generador de Abeja Soldado",
-  "entity.pixelfabric.soldier_bee": "Abeja Soldado",
+  "entity.pixelfabric.abeja_soldado": "Abeja Soldado",
+
   "item.pixelfabric.golem_spawn_egg": "Generador de Gólem",
   "entity.pixelfabric.golem": "Gólem",
+
   "item.pixelfabric.wraith_spawn_egg": "Generador de Espectro",
   "entity.pixelfabric.wraith": "Espectro",
+
   "item.pixelfabric.wildfire_spawn_egg": "Generador de Wildfire",
   "entity.pixelfabric.wildfire": "Wildfire",
+
   "item.pixelfabric.lava_spider_spawn_egg": "Generador de Octana Explosiva",
   "entity.pixelfabric.lava_spider": "Octana Explosiva",
+
   "item.pixelfabric.candle_sword_spawn_egg":"Generador de Caballero Candela",
   "entity.pixelfabric.candle_sword":"Caballero Candela",
+
   "item.pixelfabric.hellhound_spawn_egg":"Generador de Hellhound",
   "entity.pixelfabric.hellhound":"Hellhound",
-  "item.pixelfabric.pumpkin_fiend_spawn_egg":"Generado de Demonio Calabaza",
+
+  "item.pixelfabric.pumpkin_fiend_spawn_egg":"Generador de Demonio Calabaza",
   "entity.pixelfabric.pumpkin":"Demonio Calabaza",
+
   "entity.pixelfabric.owlbear":"El Defensor del Bosque Ursúho",
-  "entity.pixelfabric.Skull":"Calavera Explosiva",
+
+  "entity.pixelfabric.skull":"Calavera Explosiva",
   "item.pixelfabric.skeleton_flyer_spawn_egg":"Generador de calavera explosiva",
+
   "entity.pixelfabric.barnacle":"Barnacle",
-  "item.pixelfabric.barnacle_spawn_egg":"Generador de barnacle"
+  "item.pixelfabric.barnacle_spawn_egg":"Generador de barnacle",
+
+  "entity.pixelfabric.candik":"Blinkie",
+  "item.pixelfabric.candik_spawn_egg":"Generador de Blinkie",
+
+  "entity.pixelfabric.lavaquid":"Calamar de Lava",
+  "item.pixelfabric.lavaquid_spawn_egg":"Generador de Calamar de Lava",
+
+  "item.pixelfabric.exploding_skeleton_spawn_egg":"Generado de esqueleto explosivo",
+  "entity.pixelfabric.exploding_skeleton":"Esqueleto Explosivo",
+
+  "item.pixelfabric.miner_zombie_spawn_egg":"Generador de zombie minero",
+  "entity.pixelfabric.miner_zombie":"Zombie Minero",
+
+  "item.pixelfabric.bone_spider_spawn_egg":"Generado de araña esqueletica",
+  "entity.pixelfabric.bone_spider":"Araña Esqueletica",
+
+  "item.pixelfabric.chaos_phantom_spawn_egg":"Generado de phantom caos",
+  "entity.pixelfabric.chaos_phantom":"Phantom Caos",
+
+  "item.pixelfabric.moobloom_spawn_egg":"Generador de moobloom",
+  "item.pixelfabric.moobloom":"Moobloom",
+  "item.pixelfabric.golden_milk":"Leche dorada",
+
+  "effect.pixelfabric.inmunity":"Inmunidad",
+  "death.attack.zombification": "%s ha muerto por zombificación",
+  "effect.pixelfabric.zombification": "Zombificación",
+  "effect.pixelfabric.soul_protection": "Protección de Inventario",
+  "effect.pixelfabric.soul_protection.description": "Conserva tus objetos al morir mientras este efecto esté activo.",
+
+
+  "item.pixelfabric.wither_helmet":"Casco de wither",
+  "item.pixelfabric.wither_chestplate":"Pechera de wither",
+  "item.pixelfabric.wither_leggins":"Pantalones de wither",
+  "item.pixelfabric.wither_boots":"Botas de wither",
+
+  "item.pixelfabric.summertime_helmet":"Casco de buceo",
+  "item.pixelfabric.summertime_chestplate":"Pechera de buceo",
+  "item.pixelfabric.summertime_leggins":"Pantalones de buceo",
+  "item.pixelfabric.summertime_boots":"Chanclas de buceo",
+
+  "item.pixelfabric.wither_sword":"Espada de wither",
+  "item.pixelfabric.wither_sword_part1":"Mango de la espada wither",
+  "item.pixelfabric.wither_sword_part2":"Hoja de la espada wither",
+  "item.pixelfabric.soul_staff":"Bastón del alma",
+  "item.pixelfabric.iron_reforged":"Hierro reforzado",
+  "item.pixelfabric.wither_dust":"Polvo de wither",
+
+
+  "block.pixelfabric.withe_netherite_block":"Restos de alabastrina ancestral",
+  "item.pixelfabric.withe_netherite_scrap":"Fragmento de alabastrina",
+
+  "item.pixelfabric.heart_totem":"Totem Allay",
+  "item.pixelfabric.inventory_totem":"Totem universal",
+  "item.pixelfabric.regeneration_totem":"Totem Groot",
+
+  "enchantment.pixelfabric.vampire": "Vampirismo",
+  "enchantment.pixelfabric.bleed":"Desangrado",
+  "enchantment.pixelfabric.resonance":"Resonancia",
+  "enchantment.pixelfabric.linking":"Vinculación",
+  "enchantment.pixelfabric.vampire.desc": "Cura al usuario cada 2 golpes",
+
+  "block.pixelfabric.barbed_wire_fence": "Cerca de mandíbulas de araña",
+
+  "item.pixelfabric.heart_container":"Contenedor de corazón",
+
+  "item.pixelfabric.bone_spider_jawbone":"Hueso Mandibular de Araña",
+
+  "item.pixelfabric.bluecoin":"Deathcoin azul",
+  "item.pixelfabric.yellowcoin":"Deathcoin amarilla",
+  "item.pixelfabric.redcoin":"Deathcoin roja",
+  "item.pixelfabric.greencoin":"Deathcoin verde",
+  "item.pixelfabric.blackcoin":"Deathcoin negra",
+  "item.pixelfabric.silvercoin":"Deathcoin plateada",
+
+  "item.pixelfabric.backpack":"Mochila",
+
+  "item.pixelfabric.sun_ingot.tooltip": "§c¡Cuidado! ¡Quema al tocarlo!",
+  "item.pixelfabric.sun_ingot":"Lingote solar",
+
+  "sounds.pixelfabric.tinnitus": "Tinnitus",
+
+  "item.pixelfabric.plug":"Plug anal",
+
+  "block.pixelfabric.runa_celest":"Runa celeste",
+
+  "entity.pixelfabric.infernal_bull":"Toro Infernal",
+  "entity.pixelfabric.infernal_bull_spawn_egg":"Generador de Toro Infernal",
+
+  "item.pixelfabric.pinatabat_em":"Bate de piñata",
+
+  "item.pixelfabric.food_condenser":"Condensador de alimentos"
+
 }

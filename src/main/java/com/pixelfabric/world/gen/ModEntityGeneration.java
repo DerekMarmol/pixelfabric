@@ -2,7 +2,9 @@ package com.pixelfabric.world.gen;
 
 import com.pixelfabric.entity.ModEntities;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
+import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.*;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -10,195 +12,334 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.biome.BiomeKeys;
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class ModEntityGeneration {
+    private static final Map<String, Boolean> normalSpawnDimension = new HashMap<>(); // true para Nether, false para Overworld
+    private static final int DEFAULT_WEIGHT = 70;
+    private static final int MIN_GROUP_SIZE = 1;
+    private static final int MAX_GROUP_SIZE = 1;
+
+    private static final Map<String, Boolean> dimensionCache = new HashMap<>();
+
     public static class SpawnManager {
-        private static Map<String, Boolean> mobSpawnStates = new HashMap<>();
-        private static Map<String, Boolean> alternativeSpawnStates = new HashMap<>();
+        private static final Map<String, SpawnState> spawnStates = new HashMap<>();
+        private static final Map<String, Integer> biomeCaps = new HashMap<>();
+
+        private static class SpawnState {
+            boolean normal;
+            boolean alternative;
+            int spawnCap;
+
+            SpawnState() {
+                this.normal = false;
+                this.alternative = false;
+                this.spawnCap = 70; // Cap por defecto
+            }
+        }
 
         public static void registerMob(String mobId) {
-            mobSpawnStates.put(mobId, false);
-            alternativeSpawnStates.put(mobId + "_alternative", false);
+            spawnStates.put(mobId, new SpawnState());
+        }
+
+        public static void setSpawnCap(String mobId, int cap) {
+            spawnStates.computeIfPresent(mobId, (k, v) -> {
+                v.spawnCap = cap;
+                return v;
+            });
+        }
+
+        public static void setBiomeCap(String biomeId, int cap) {
+            biomeCaps.put(biomeId, cap);
         }
 
         public static boolean isSpawnEnabled(String mobId) {
-            return mobSpawnStates.getOrDefault(mobId, false);
+            SpawnState state = spawnStates.get(mobId);
+            return state != null && state.normal;
         }
 
         public static boolean isAlternativeSpawnEnabled(String mobId) {
-            return alternativeSpawnStates.getOrDefault(mobId + "_alternative", false);
+            SpawnState state = spawnStates.get(mobId);
+            return state != null && state.alternative;
         }
 
         public static void toggleSpawn(String mobId, boolean state) {
-            mobSpawnStates.put(mobId, state);
+            spawnStates.computeIfPresent(mobId, (k, v) -> {
+                v.normal = state;
+                return v;
+            });
         }
 
         public static void toggleAlternativeSpawn(String mobId, boolean state) {
-            alternativeSpawnStates.put(mobId + "_alternative", state);
+            spawnStates.computeIfPresent(mobId, (k, v) -> {
+                v.alternative = state;
+                return v;
+            });
+        }
+
+        public static int getSpawnCap(String mobId) {
+            SpawnState state = spawnStates.get(mobId);
+            return state != null ? state.spawnCap : 70;
+        }
+
+        public static int getBiomeCap(String biomeId) {
+            return biomeCaps.getOrDefault(biomeId, 70);
         }
     }
 
+    private static void initializeNormalSpawnDimensions() {
+        normalSpawnDimension.put("hellhound", true);  // Nether
+        normalSpawnDimension.put("candik", false);    // Overworld
+        normalSpawnDimension.put("golem", false);     // Overworld
+        normalSpawnDimension.put("lava_spider", true); // Nether
+        normalSpawnDimension.put("skull", false);     // Overworld
+        normalSpawnDimension.put("barnacle", false);  // Overworld (agua)
+        normalSpawnDimension.put("exploding_skeleton", false); // Overworld
+        normalSpawnDimension.put("miner_zombie", false); // Overworld
+        normalSpawnDimension.put("abeja_soldado", false);
+        normalSpawnDimension.put("wildfire", true);  // Nether
+        normalSpawnDimension.put("infernal_bull", true);  // Nether
+    }
+
+    private static boolean canEntitySpawn(
+            String mobId,
+            EntityType<?> type,
+            ServerWorldAccess world,
+            SpawnReason spawnReason,
+            BlockPos pos,
+            Random random
+    ) {
+        boolean normalSpawnEnabled = SpawnManager.isSpawnEnabled(mobId);
+        boolean alternativeSpawnEnabled = SpawnManager.isAlternativeSpawnEnabled(mobId);
+
+        if (!normalSpawnEnabled && !alternativeSpawnEnabled) {
+            return false;
+        }
+
+        String dimensionId = world.getDimension().toString();
+        boolean isNether = dimensionCache.computeIfAbsent(dimensionId,
+                k -> world.getDimension().ultrawarm());
+
+        if (alternativeSpawnEnabled) {
+            return HostileEntity.canSpawnIgnoreLightLevel(
+                    (EntityType<? extends HostileEntity>) type, world, spawnReason, pos, random);
+        }
+
+        if (normalSpawnEnabled) {
+            boolean shouldSpawnInNether = normalSpawnDimension.getOrDefault(mobId, false);
+
+            if (isNether != shouldSpawnInNether) {
+                return false;
+            }
+
+            // Para spawn normal, siempre verificar oscuridad
+            return HostileEntity.canSpawnInDark(
+                    (EntityType<? extends HostileEntity>) type, world, spawnReason, pos, random);
+        }
+
+        return false;
+    }
+
+    private static boolean canCandikSpawn(EntityType<?> type, ServerWorldAccess world,
+                                          SpawnReason spawnReason, BlockPos pos, Random random) {
+        return canEntitySpawn("candik", type, world, spawnReason, pos, random);
+    }
+
+    private static boolean canGolemSpawn(EntityType<?> type, ServerWorldAccess world,
+                                         SpawnReason spawnReason, BlockPos pos, Random random) {
+        return canEntitySpawn("golem", type, world, spawnReason, pos, random);
+    }
+
+    private static boolean canBeeSoldierSpawn(EntityType<?> type, ServerWorldAccess world,
+                                         SpawnReason spawnReason, BlockPos pos, Random random) {
+        return canEntitySpawn("abeja_soldado", type, world, spawnReason, pos, random);
+    }
+
+    private static boolean canHellhoundSpawn(EntityType<?> type, ServerWorldAccess world,
+                                             SpawnReason spawnReason, BlockPos pos, Random random) {
+        return canEntitySpawn("hellhound", type, world, spawnReason, pos, random);
+    }
+
+    private static boolean canLavaSpiderSpawn(EntityType<?> type, ServerWorldAccess world,
+                                              SpawnReason spawnReason, BlockPos pos, Random random) {
+        return canEntitySpawn("lava_spider", type, world, spawnReason, pos, random);
+    }
+
+    private static boolean canSkullSpawn(EntityType<?> type, ServerWorldAccess world,
+                                         SpawnReason spawnReason, BlockPos pos, Random random) {
+        return canEntitySpawn("skull", type, world, spawnReason, pos, random);
+    }
+
+    private static boolean canExplodingSkeletonSpawn(EntityType<?> type, ServerWorldAccess world,
+                                                     SpawnReason spawnReason, BlockPos pos, Random random) {
+        return canEntitySpawn("exploding_skeleton", type, world, spawnReason, pos, random);
+    }
+
+    private static boolean canMinerZombieSpawn(EntityType<?> type, ServerWorldAccess world,
+                                               SpawnReason spawnReason, BlockPos pos, Random random) {
+        return canEntitySpawn("miner_zombie", type, world, spawnReason, pos, random);
+    }
+
+    private static boolean canBarnacleSpawn(EntityType<?> type, ServerWorldAccess world,
+                                            SpawnReason spawnReason, BlockPos pos, Random random) {
+        if (!SpawnManager.isSpawnEnabled("barnacle")) {
+            return false;
+        }
+        return world.getBlockState(pos).isOf(Blocks.WATER) &&
+                world.getBlockState(pos.up()).isOf(Blocks.WATER);
+    }
+
+    private static boolean canWildfireSpawn(EntityType<?> type, ServerWorldAccess world,
+                                            SpawnReason spawnReason, BlockPos pos, Random random) {
+        return canEntitySpawn("wildfire", type, world, spawnReason, pos, random);
+    }
+
+    private static boolean canInfernalBullSpawn(EntityType<?> type, ServerWorldAccess world,
+                                                SpawnReason spawnReason, BlockPos pos, Random random) {
+        return canEntitySpawn("infernal_bull", type, world, spawnReason, pos, random);
+    }
+
     public static void registerSpawnRules() {
-        // Reglas del Golem
         SpawnRestriction.register(ModEntities.Golem,
                 SpawnRestriction.Location.ON_GROUND,
                 Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
                 ModEntityGeneration::canGolemSpawn);
 
-        // Reglas del Hellhound
         SpawnRestriction.register(ModEntities.Hellhound,
                 SpawnRestriction.Location.ON_GROUND,
                 Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
                 ModEntityGeneration::canHellhoundSpawn);
 
-        // Reglas del Lava Spider
         SpawnRestriction.register(ModEntities.LAVA_SPIDER,
                 SpawnRestriction.Location.ON_GROUND,
                 Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
                 ModEntityGeneration::canLavaSpiderSpawn);
 
-        // Registramos todos los mobs
-        SpawnManager.registerMob("golem");
-        SpawnManager.registerMob("hellhound");
-        SpawnManager.registerMob("lava_spider");
+        SpawnRestriction.register(ModEntities.Skull,
+                SpawnRestriction.Location.ON_GROUND,
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                ModEntityGeneration::canSkullSpawn);
+
+        SpawnRestriction.register(ModEntities.BARNACLE,
+                SpawnRestriction.Location.IN_WATER,
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                ModEntityGeneration::canBarnacleSpawn);
+
+        SpawnRestriction.register(ModEntities.CANDIK,
+                SpawnRestriction.Location.ON_GROUND,
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                ModEntityGeneration::canCandikSpawn);
+
+        SpawnRestriction.register(ModEntities.Soldier_Bee,
+                SpawnRestriction.Location.ON_GROUND,
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                ModEntityGeneration::canBeeSoldierSpawn);
+
+        SpawnRestriction.register(ModEntities.EXPLODING_SKELETON,
+                SpawnRestriction.Location.ON_GROUND,
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                ModEntityGeneration::canExplodingSkeletonSpawn);
+
+        SpawnRestriction.register(ModEntities.MINER_ZOMBIE,
+                SpawnRestriction.Location.ON_GROUND,
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                ModEntityGeneration::canMinerZombieSpawn);
+
+        SpawnRestriction.register(ModEntities.Wildfire,
+                SpawnRestriction.Location.ON_GROUND,
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                ModEntityGeneration::canWildfireSpawn);
+
+        SpawnRestriction.register(ModEntities.INFERNAL_BULL,
+                SpawnRestriction.Location.ON_GROUND,
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                ModEntityGeneration::canInfernalBullSpawn);
+
+        registerMobsWithCaps();
     }
 
-    private static boolean canGolemSpawn(EntityType<?> type, ServerWorldAccess world,
-                                         SpawnReason spawnReason, BlockPos pos, Random random) {
-        boolean normalSpawnEnabled = SpawnManager.isSpawnEnabled("golem");
-        boolean alternativeSpawnEnabled = SpawnManager.isAlternativeSpawnEnabled("golem");
+    private static void registerMobsWithCaps() {
+        String[] mobs = {
+                "golem", "hellhound", "lava_spider", "skull",
+                "barnacle", "candik", "exploding_skeleton", "miner_zombie",
+                "abeja_soldado", "wildfire", "infernal_bull"  // Añadido aquí
+        };
 
-        if (!normalSpawnEnabled && !alternativeSpawnEnabled) {
-            return false;
+        for (String mob : mobs) {
+            SpawnManager.registerMob(mob);
+            SpawnManager.setSpawnCap(mob, 90);
         }
-
-        if (world.getDimension().ultrawarm()) {
-            return HostileEntity.canSpawnIgnoreLightLevel(
-                    (EntityType<? extends HostileEntity>) type, world, spawnReason, pos, random);
-        }
-
-        return alternativeSpawnEnabled && HostileEntity.canSpawnIgnoreLightLevel(
-                (EntityType<? extends HostileEntity>) type, world, spawnReason, pos, random);
     }
-
-    private static boolean canHellhoundSpawn(EntityType<?> type, ServerWorldAccess world,
-                                             SpawnReason spawnReason, BlockPos pos, Random random) {
-        boolean normalSpawnEnabled = SpawnManager.isSpawnEnabled("hellhound");
-        boolean alternativeSpawnEnabled = SpawnManager.isAlternativeSpawnEnabled("hellhound");
-
-        if (!normalSpawnEnabled && !alternativeSpawnEnabled) {
-            return false;
-        }
-
-        if (world.getDimension().ultrawarm()) {
-            return HostileEntity.canSpawnIgnoreLightLevel(
-                    (EntityType<? extends HostileEntity>) type, world, spawnReason, pos, random);
-        }
-
-        return alternativeSpawnEnabled && HostileEntity.canSpawnIgnoreLightLevel(
-                (EntityType<? extends HostileEntity>) type, world, spawnReason, pos, random);
-    }
-
-    private static boolean canLavaSpiderSpawn(EntityType<?> type, ServerWorldAccess world,
-                                              SpawnReason spawnReason, BlockPos pos, Random random) {
-        boolean normalSpawnEnabled = SpawnManager.isSpawnEnabled("lava_spider");
-        boolean alternativeSpawnEnabled = SpawnManager.isAlternativeSpawnEnabled("lava_spider");
-
-        // Si ninguno está activado, no permitir spawn
-        if (!normalSpawnEnabled && !alternativeSpawnEnabled) {
-            return false;
-        }
-
-        // Si es el Nether, permitimos spawn si cualquiera está activado (normal o alternativo)
-        if (world.getDimension().ultrawarm()) {
-            return HostileEntity.canSpawnIgnoreLightLevel(
-                    (EntityType<? extends HostileEntity>) type, world, spawnReason, pos, random);
-        }
-
-        // Si es el Overworld, solo permitimos spawn si el spawn alternativo está activado
-        if (alternativeSpawnEnabled) {
-            // Ignoramos las condiciones de luz para permitir que spawneen también de día
-            return HostileEntity.canSpawnIgnoreLightLevel(
-                    (EntityType<? extends HostileEntity>) type, world, spawnReason, pos, random);
-        }
-
-        // Comportamiento normal para spawn
-        return false;
-    }
-
 
     public static void addSpawns() {
-        // Spawn del Golem
-        BiomeModifications.addSpawn(
-                BiomeSelectors.all(),
-                SpawnGroup.MONSTER,
-                ModEntities.Golem,
-                20,
-                1,
-                4);
+        initializeNormalSpawnDimensions();
 
-        // Spawn alternativo del Golem (Nether + Overworld)
-        BiomeModifications.addSpawn(
-                BiomeSelectors.includeByKey(
-                        BiomeKeys.NETHER_WASTES,
-                        BiomeKeys.CRIMSON_FOREST,
-                        BiomeKeys.PLAINS,
-                        BiomeKeys.DESERT,
-                        BiomeKeys.SAVANNA),
-                SpawnGroup.MONSTER,
-                ModEntities.Golem,
-                15,
-                1,
-                4);
+        addMobSpawn(ModEntities.Hellhound, 90, BiomeSelectors.foundInTheNether());
+        addMobSpawn(ModEntities.Hellhound, 100, BiomeSelectors.foundInOverworld());
 
-        // Spawn del Hellhound (sólo Nether)
-        BiomeModifications.addSpawn(
-                BiomeSelectors.includeByKey(BiomeKeys.SOUL_SAND_VALLEY),
-                SpawnGroup.MONSTER,
-                ModEntities.Hellhound,
-                25,
-                1,
-                3);
+        addMobSpawn(ModEntities.INFERNAL_BULL, 90, BiomeSelectors.foundInTheNether());
+        addMobSpawn(ModEntities.INFERNAL_BULL, 90,
+                BiomeSelectors.foundInTheNether()
+                        .and(context -> !context.getBiomeKey().equals(BiomeKeys.BASALT_DELTAS))
+        );
 
-        // Spawn alternativo del Hellhound (Nether + Overworld)
-        BiomeModifications.addSpawn(
-                BiomeSelectors.includeByKey(
-                        BiomeKeys.SOUL_SAND_VALLEY,
-                        BiomeKeys.PLAINS,
-                        BiomeKeys.DESERT,
-                        BiomeKeys.SAVANNA),
-                SpawnGroup.MONSTER,
-                ModEntities.Hellhound,
-                20,
-                1,
-                3);
+        addMobSpawn(ModEntities.Soldier_Bee, 90, BiomeSelectors.foundInOverworld());
+        addMobSpawn(ModEntities.Soldier_Bee, 95, BiomeSelectors.foundInTheNether());
+        addMobSpawn(ModEntities.Soldier_Bee, 100, BiomeSelectors.includeByKey(
+                BiomeKeys.FLOWER_FOREST
+        ));
 
-        // Spawn normal de Lava Spider (solo Nether)
-        BiomeModifications.addSpawn(
-                BiomeSelectors.includeByKey(
-                        BiomeKeys.NETHER_WASTES,
-                        BiomeKeys.CRIMSON_FOREST),
-                SpawnGroup.MONSTER,
-                ModEntities.LAVA_SPIDER,
-                20,
-                1,
-                1);
+        addMobSpawn(ModEntities.LAVA_SPIDER, 35, BiomeSelectors.foundInTheNether());
+        addMobSpawn(ModEntities.LAVA_SPIDER, 40, BiomeSelectors.foundInOverworld());
 
-        // Spawn alternativo de Lava Spider (Nether + Overworld)
+        addMobSpawn(ModEntities.CANDIK, 90, BiomeSelectors.foundInTheNether());
+        addMobSpawn(ModEntities.CANDIK, 100, BiomeSelectors.foundInOverworld());
+
+        addMobSpawn(ModEntities.Golem, 80, BiomeSelectors.foundInOverworld());
+        addMobSpawn(ModEntities.Golem, 70, BiomeSelectors.foundInTheNether());
+
+        // Configuración especial para Skull con biomas específicos
+        addMobSpawn(ModEntities.Skull, 100, BiomeSelectors.foundInOverworld());
+        addMobSpawn(ModEntities.Skull, 105, BiomeSelectors.foundInTheNether());
+        addMobSpawn(ModEntities.Skull, 100, BiomeSelectors.includeByKey(
+                BiomeKeys.DARK_FOREST,
+                BiomeKeys.DEEP_DARK,
+                BiomeKeys.SOUL_SAND_VALLEY,
+                BiomeKeys.WARPED_FOREST,
+                BiomeKeys.CRIMSON_FOREST,
+                BiomeKeys.PLAINS,
+                BiomeKeys.SUNFLOWER_PLAINS
+        ));
+
+        // Configuración especial para Barnacle en biomas acuáticos
+        addMobSpawn(ModEntities.BARNACLE, 80, BiomeSelectors.includeByKey(
+                BiomeKeys.OCEAN, BiomeKeys.DEEP_OCEAN, BiomeKeys.COLD_OCEAN,
+                BiomeKeys.DEEP_COLD_OCEAN, BiomeKeys.FROZEN_OCEAN,
+                BiomeKeys.DEEP_FROZEN_OCEAN, BiomeKeys.LUKEWARM_OCEAN,
+                BiomeKeys.DEEP_LUKEWARM_OCEAN, BiomeKeys.WARM_OCEAN
+        ));
+
+        addMobSpawn(ModEntities.EXPLODING_SKELETON, 90, BiomeSelectors.foundInOverworld());
+        addMobSpawn(ModEntities.EXPLODING_SKELETON, 100, BiomeSelectors.foundInTheNether());
+
+        addMobSpawn(ModEntities.MINER_ZOMBIE, 90, BiomeSelectors.foundInOverworld());
+        addMobSpawn(ModEntities.MINER_ZOMBIE, 95, BiomeSelectors.foundInTheNether());
+
+        addMobSpawn(ModEntities.Wildfire, 90, BiomeSelectors.foundInTheNether());
+        addMobSpawn(ModEntities.Wildfire, 100, BiomeSelectors.foundInOverworld());
+    }
+
+    // Método helper para añadir spawns de manera más limpia
+    private static void addMobSpawn(EntityType<?> entityType, int weight, Predicate<BiomeSelectionContext> selector) {
         BiomeModifications.addSpawn(
-                BiomeSelectors.includeByKey(
-                        BiomeKeys.NETHER_WASTES,
-                        BiomeKeys.CRIMSON_FOREST,
-                        BiomeKeys.PLAINS,
-                        BiomeKeys.DESERT,
-                        BiomeKeys.SAVANNA),
+                selector,
                 SpawnGroup.MONSTER,
-                ModEntities.LAVA_SPIDER,
-                15,
-                1,
-                1);
+                entityType,
+                weight,
+                MIN_GROUP_SIZE,
+                MAX_GROUP_SIZE
+        );
     }
 }

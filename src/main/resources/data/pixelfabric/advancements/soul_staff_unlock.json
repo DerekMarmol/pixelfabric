@@ -1,0 +1,12 @@
+{
+  "criteria": {
+    "trigger_unlocked": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "rewards": {
+    "recipes": [
+      "pixelfabric:soul_staff"
+    ]
+  }
+}

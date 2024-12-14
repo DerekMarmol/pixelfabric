@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": { "model": "pixelfabric:block/razor_wire", "y": 0},
+        "facing=south": { "model": "pixelfabric:block/razor_wire", "y": 180},
+        "facing=east": {  "model": "pixelfabric:block/razor_wire", "y": 90},
+        "facing=west": {  "model": "pixelfabric:block/razor_wire", "y": 270}
+    }
+}

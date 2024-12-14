@@ -1,17 +1,27 @@
 package com.pixelfabric.entity.custom;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.control.FlightMoveControl;
 import net.minecraft.entity.ai.goal.*;
+import net.minecraft.entity.ai.pathing.BirdNavigation;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -19,12 +29,16 @@ import software.bernie.geckolib.core.animatable.instance.SingletonAnimatableInst
 import software.bernie.geckolib.core.animation.*;
 import software.bernie.geckolib.core.object.PlayState;
 
+import java.util.EnumSet;
+
 public class Soldier_BeeEntity extends HostileEntity implements GeoEntity {
     private AnimatableInstanceCache factory = new SingletonAnimatableInstanceCache(this);
-    private int attackCooldown = 0;  // Añadimos un cooldown para los ataques
+    private int attackCooldown = 0;
 
     public Soldier_BeeEntity(EntityType<? extends HostileEntity> entityType, World world) {
         super(entityType, world);
+        this.moveControl = new FlightMoveControl(this, 20, true);
+        this.navigation = new BirdNavigation(this, world);
     }
 
     public static DefaultAttributeContainer.Builder setAttributes() {
@@ -39,8 +53,8 @@ public class Soldier_BeeEntity extends HostileEntity implements GeoEntity {
     @Override
     protected void initGoals() {
         this.goalSelector.add(1, new SwimGoal(this));
-        this.goalSelector.add(2, new SoldierBeeAttackGoal(this, 1.0D, false));  // Usamos una versión personalizada del MeleeAttackGoal
-        this.goalSelector.add(3, new FlyGoal(this, 1.0D));
+        this.goalSelector.add(2, new SoldierBeeAttackGoal(this, 1.0D, false));
+        this.goalSelector.add(3, new FlyRandomlyGoal(this));
         this.goalSelector.add(4, new WanderAroundFarGoal(this, 0.75f));
         this.goalSelector.add(5, new LookAtEntityGoal(this, PlayerEntity.class, 8.0f));
         this.goalSelector.add(6, new LookAroundGoal(this));
@@ -50,10 +64,11 @@ public class Soldier_BeeEntity extends HostileEntity implements GeoEntity {
     }
 
     private PlayState predicate(AnimationState<Soldier_BeeEntity> event) {
-        if (event.isMoving()) {
+        if (this.isOnGround()) {
+            return event.setAndContinue(RawAnimation.begin().then("animation.soldier_bee.idle", Animation.LoopType.LOOP));
+        } else {
             return event.setAndContinue(RawAnimation.begin().then("animation.soldier_bee.walk", Animation.LoopType.LOOP));
         }
-        return event.setAndContinue(RawAnimation.begin().then("animation.soldier_bee.idle", Animation.LoopType.LOOP));
     }
 
     private PlayState attackPredicate(AnimationState<Soldier_BeeEntity> event) {
@@ -82,9 +97,70 @@ public class Soldier_BeeEntity extends HostileEntity implements GeoEntity {
         if (this.attackCooldown > 0) {
             this.attackCooldown--;
         }
+
+        if (!this.isOnGround() && this.getVelocity().y < 0) {
+            this.setVelocity(this.getVelocity().multiply(1.0, 0.6, 1.0));
+        }
     }
 
-    // Clase interna para manejar el ataque con cooldown
+    private void applyPoisonEffect(LivingEntity target) {
+        target.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 60, 1));
+        target.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 40, 0));
+
+        if (this.getWorld() instanceof ServerWorld) {
+            ((ServerWorld) this.getWorld()).spawnParticles(
+                    ParticleTypes.ENTITY_EFFECT,
+                    target.getX(),
+                    target.getY() + target.getHeight() / 2,
+                    target.getZ(),
+                    10,
+                    0.5,
+                    0.5,
+                    0.5,
+                    0.1
+            );
+        }
+    }
+
+    private static class FlyRandomlyGoal extends Goal {
+        private final Soldier_BeeEntity bee;
+        private Vec3d targetPos;
+
+        public FlyRandomlyGoal(Soldier_BeeEntity bee) {
+            this.bee = bee;
+            this.setControls(EnumSet.of(Goal.Control.MOVE));
+        }
+
+        @Override
+        public boolean canStart() {
+            return !bee.hasPassengers();
+        }
+
+        @Override
+        public void start() {
+            this.targetPos = this.getRandomLocation();
+        }
+
+        @Override
+        public void tick() {
+            if (this.targetPos == null || this.bee.squaredDistanceTo(targetPos.x, targetPos.y, targetPos.z) < 2.0) {
+                this.targetPos = this.getRandomLocation();
+            }
+
+            if (this.targetPos != null) {
+                this.bee.getMoveControl().moveTo(targetPos.x, targetPos.y, targetPos.z, 1.0);
+            }
+        }
+
+        private Vec3d getRandomLocation() {
+            Random random = bee.getRandom();
+            double x = bee.getX() + (random.nextDouble() * 2 - 1) * 8;
+            double y = bee.getY() + (random.nextDouble() * 2 - 1) * 4;
+            double z = bee.getZ() + (random.nextDouble() * 2 - 1) * 8;
+            return new Vec3d(x, y, z);
+        }
+    }
+
     private class SoldierBeeAttackGoal extends MeleeAttackGoal {
         public SoldierBeeAttackGoal(Soldier_BeeEntity bee, double speed, boolean pauseWhenMobIdle) {
             super(bee, speed, pauseWhenMobIdle);
@@ -101,13 +177,14 @@ public class Soldier_BeeEntity extends HostileEntity implements GeoEntity {
             if (squaredDistance <= d && this.getCooldown() <= 0) {
                 this.resetCooldown();
                 this.mob.swingHand(Hand.MAIN_HAND);
-                this.mob.tryAttack(target);
-                Soldier_BeeEntity.this.attackCooldown = 20;  // Cooldown de 1 segundo entre ataques
+                if (this.mob.tryAttack(target)) {
+                    Soldier_BeeEntity.this.applyPoisonEffect(target);
+                }
+                Soldier_BeeEntity.this.attackCooldown = 20;
             }
         }
     }
 
-    // Sonidos personalizados
     @Override
     protected SoundEvent getAmbientSound() {
         return SoundEvents.ENTITY_BEE_LOOP;
@@ -121,5 +198,19 @@ public class Soldier_BeeEntity extends HostileEntity implements GeoEntity {
     @Override
     protected SoundEvent getDeathSound() {
         return SoundEvents.ENTITY_BEE_DEATH;
+    }
+
+    @Override
+    public boolean handleFallDamage(float fallDistance, float damageMultiplier, DamageSource damageSource) {
+        return false;
+    }
+
+    @Override
+    protected void fall(double heightDifference, boolean onGround, BlockState state, BlockPos landedPosition) {
+    }
+
+    @Override
+    public boolean hasNoGravity() {
+        return true;
     }
 }

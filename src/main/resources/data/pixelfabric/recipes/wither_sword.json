@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " IA",
+    "XDI",
+    "DX "
+  ],
+  "key": {
+    "X": {
+      "item": "pixelfabric:wither_dust"
+    },
+    "A": {
+      "item": "pixelfabric:sun_ingot"
+    },
+    "D": {
+      "item": "pixelfabric:soul_staff"
+    },
+    "I": {
+      "item": "pixelfabric:iron_reforged"
+    }
+  },
+  "result": {
+    "item": "pixelfabric:wither_sword"
+  },
+  "show_notification": true
+}

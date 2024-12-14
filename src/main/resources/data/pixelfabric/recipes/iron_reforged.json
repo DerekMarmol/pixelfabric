@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    "DID",
+    " D "
+  ],
+  "key": {
+    "D": {
+      "item": "pixelfabric:wither_dust"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "item": "pixelfabric:iron_reforged"
+  },
+  "show_notification": true
+}

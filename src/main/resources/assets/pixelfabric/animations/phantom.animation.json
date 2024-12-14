@@ -1,0 +1,17 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.phantom.base_pose": {
+			"loop": true
+		},
+		"animation.phantom.move": {
+			"loop": true,
+			"animation_length": 2.417,
+			"sound_effects": {
+				"1.4": {
+					"effect": "flap"
+				}
+			}
+		}
+	}
+}

@@ -10,6 +10,10 @@ base {
 	archivesName = project.archives_base_name
 }
 
+loom {
+	accessWidenerPath = file("src/main/resources/pixelfabric.accesswidener")
+}
+
 repositories {
 	maven {
 		name = 'GeckoLib'
@@ -19,28 +23,40 @@ repositories {
 			includeGroup("com.eliotlash.mclib")
 		}
 	}
-	maven {url = "https://maven.kyrptonaught.dev"}
+	maven { url = "https://maven.kyrptonaught.dev" }
+	maven {
+		name = 'Ladysnake Mods'
+		url = 'https://maven.ladysnake.org/releases'
+	}
 }
+
 
 fabricApi {
 	configureDataGeneration()
 }
 
 dependencies {
-	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
+	// Fabric API (generalmente requerido)
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modImplementation "software.bernie.geckolib:geckolib-fabric-1.20.1:4.2.1"
-	modImplementation "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}"
-	implementation "com.eliotlash.mclib:mclib:20"
 
+	// GeckoLib para Fabric
+	modImplementation "software.bernie.geckolib:geckolib-fabric-1.20.1:4.2.1"
+
+	implementation "com.eliotlash.mclib:mclib:20"
+	implementation "com.google.code.gson:gson:2.8.9"
+	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.2.1"
+	modImplementation "dev.onyxstudios.cardinal-components-api:cardinal-components-entity:5.2.1"
+	implementation "commons-io:commons-io:2.11.0"
+	implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
+	include 'org.xerial:sqlite-jdbc:3.42.0.0'
 	modImplementation 'net.kyrptonaught:customportalapi:0.0.1-beta65-1.20'
 	include 'net.kyrptonaught:customportalapi:0.0.1-beta65-1.20'
 }
+
 
 processResources {
 	inputs.property "version", project.version

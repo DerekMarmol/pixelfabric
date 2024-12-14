@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "minecraft:soul_sand" },
+    { "item": "minecraft:soul_sand" },
+    { "item": "minecraft:soul_sand" },
+    { "item": "minecraft:soul_sand" },
+    { "item": "minecraft:blaze_rod" },
+    { "item": "minecraft:soul_sand" },
+    { "item": "minecraft:soul_sand" },
+    { "item": "minecraft:soul_sand" },
+    { "item": "minecraft:soul_sand" }
+  ],
+  "result": {
+    "item": "pixelfabric:soul_staff"
+  },
+  "show_notification": true,
+  "advancement": "pixelfabric:soul_staff_unlock"
+}

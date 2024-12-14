@@ -11,9 +11,45 @@
     "LivingEntityMixin",
     "MobEntityMixin",
     "ShieldItemMixin",
-    "BarrierBlockMixin",
     "ZombieDamageMixin",
-    "ZombieSunBurnMixin"
+    "ZombieSunBurnMixin",
+    "ZombieBuildingMixin",
+    "ZombieEquipmentMixin",
+    "MobEntityAccessor",
+    "SkeletonArrowMixin",
+    "SkeletonAttackMixin",
+    "LivingEntityTotem",
+    "EffectInmunityMixin",
+    "SoulProtectionMixin",
+    "ZombieX6DamageMixin",
+    "ZombieX9DamageMixin",
+    "PhantomDamageMixin",
+    "PhantomX6DamageMixin",
+    "PhantomInventoryShuffleMixin",
+    "SpiderAggressionMixin",
+    "MobCapModifierMixin",
+    "SpawnHelperAccessor",
+    "PlayerEntityMixin",
+    "CreeperFlashMixin",
+    "SprintHungerMixin",
+    "SkeletonAccuracyMixin",
+    "FallDamageMixin",
+    "ItemRendererAccessor",
+    "ItemRendererMixin",
+    "ModelLoaderMixin",
+    "RegistrySyncErrorMixin",
+    "TripleMobResistanceMixin",
+    "CraftingResultSlotMixin",
+    "DoubleHealthMixin",
+    "ResonanceMixin",
+    "CreeperExplosionRangeMixin",
+    "PersistentFireMixin"
+
+  ],
+  "client": [
+    "ClientPlayNetworkHandlerMixin"
+  ],
+  "server": [
   ],
   "injectors": {
     "defaultRequire": 1

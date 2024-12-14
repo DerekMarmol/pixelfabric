@@ -1,0 +1,26 @@
+{
+  "tinnitus": {
+    "subtitle": "sounds.pixelfabric.tinnitus",
+    "sounds": [
+      "pixelfabric:tinnitus"
+    ]
+  },
+  "muerte":{
+    "subtitle": "sounds.pixelfabric.muerte",
+    "sounds": [
+      "pixelfabric:muerte"
+    ]
+  },
+  "ruleta":{
+    "subtitle": "sounds.pixelfabric.ruleta",
+    "sounds": [
+      "pixelfabric:ruleta"
+    ]
+  },
+  "reviil":{
+    "subtitle": "sounds.pixelfabric.reviil",
+    "sounds": [
+      "pixelfabric:reviil"
+    ]
+  }
+}

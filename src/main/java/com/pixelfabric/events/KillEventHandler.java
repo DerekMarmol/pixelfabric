@@ -1,9 +1,8 @@
 package com.pixelfabric.events;
 
-import com.pixelfabric.missions.KillTracker;
+import com.pixelfabric.mission.KillTracker;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public class KillEventHandler {

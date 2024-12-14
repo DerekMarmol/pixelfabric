@@ -2,7 +2,7 @@ package com.pixelfabric.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.pixelfabric.missions.MissionManager;
+import com.pixelfabric.mission.MissionManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import static net.minecraft.server.command.CommandManager.argument;
