@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class ModEntityGeneration {
-    private static final Map<String, Boolean> normalSpawnDimension = new HashMap<>(); // true para Nether, false para Overworld
+    private static final Map<String, Boolean> normalSpawnDimension = new HashMap<>(); // true for Nether, false for Overworld
     private static final int DEFAULT_WEIGHT = 70;
     private static final int MIN_GROUP_SIZE = 1;
     private static final int MAX_GROUP_SIZE = 1;
@@ -36,7 +36,7 @@ public class ModEntityGeneration {
             SpawnState() {
                 this.normal = false;
                 this.alternative = false;
-                this.spawnCap = 70; // Cap por defecto
+                this.spawnCap = 70; // Default cap
             }
         }
 
@@ -95,12 +95,13 @@ public class ModEntityGeneration {
         normalSpawnDimension.put("golem", false);     // Overworld
         normalSpawnDimension.put("lava_spider", true); // Nether
         normalSpawnDimension.put("skull", false);     // Overworld
-        normalSpawnDimension.put("barnacle", false);  // Overworld (agua)
+        normalSpawnDimension.put("barnacle", false);  // Overworld (water)
         normalSpawnDimension.put("exploding_skeleton", false); // Overworld
         normalSpawnDimension.put("miner_zombie", false); // Overworld
         normalSpawnDimension.put("abeja_soldado", false);
         normalSpawnDimension.put("wildfire", true);  // Nether
         normalSpawnDimension.put("infernal_bull", true);  // Nether
+        normalSpawnDimension.put("zombie_tank", false); // Overworld
     }
 
     private static boolean canEntitySpawn(
@@ -123,6 +124,16 @@ public class ModEntityGeneration {
                 k -> world.getDimension().ultrawarm());
 
         if (alternativeSpawnEnabled) {
+            // For alternative spawn, check if it's in overworld and if the surface is accessible
+            if (!isNether) {
+                // Check if mob can spawn on surface during day (ignore light level completely)
+                BlockPos surfacePos = world.getTopPosition(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, pos);
+                if (world.isSkyVisible(surfacePos)) {
+                    // Can spawn on surface regardless of light level or time
+                    return true;
+                }
+            }
+            // Fallback to normal hostile spawn rules for alternative spawn in other cases
             return HostileEntity.canSpawnIgnoreLightLevel(
                     (EntityType<? extends HostileEntity>) type, world, spawnReason, pos, random);
         }
@@ -134,7 +145,7 @@ public class ModEntityGeneration {
                 return false;
             }
 
-            // Para spawn normal, siempre verificar oscuridad
+            // For normal spawn, always check darkness
             return HostileEntity.canSpawnInDark(
                     (EntityType<? extends HostileEntity>) type, world, spawnReason, pos, random);
         }
@@ -153,7 +164,7 @@ public class ModEntityGeneration {
     }
 
     private static boolean canBeeSoldierSpawn(EntityType<?> type, ServerWorldAccess world,
-                                         SpawnReason spawnReason, BlockPos pos, Random random) {
+                                              SpawnReason spawnReason, BlockPos pos, Random random) {
         return canEntitySpawn("abeja_soldado", type, world, spawnReason, pos, random);
     }
 
@@ -199,6 +210,11 @@ public class ModEntityGeneration {
     private static boolean canInfernalBullSpawn(EntityType<?> type, ServerWorldAccess world,
                                                 SpawnReason spawnReason, BlockPos pos, Random random) {
         return canEntitySpawn("infernal_bull", type, world, spawnReason, pos, random);
+    }
+
+    private static boolean canZombieTankSpawn(EntityType<?> type, ServerWorldAccess world,
+                                              SpawnReason spawnReason, BlockPos pos, Random random) {
+        return canEntitySpawn("zombie_tank", type, world, spawnReason, pos, random);
     }
 
     public static void registerSpawnRules() {
@@ -257,6 +273,11 @@ public class ModEntityGeneration {
                 Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
                 ModEntityGeneration::canInfernalBullSpawn);
 
+        SpawnRestriction.register(ModEntities.ZOMBIE_TANK,
+                SpawnRestriction.Location.ON_GROUND,
+                Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
+                ModEntityGeneration::canZombieTankSpawn);
+
         registerMobsWithCaps();
     }
 
@@ -264,7 +285,7 @@ public class ModEntityGeneration {
         String[] mobs = {
                 "golem", "hellhound", "lava_spider", "skull",
                 "barnacle", "candik", "exploding_skeleton", "miner_zombie",
-                "abeja_soldado", "wildfire", "infernal_bull"  // Añadido aquí
+                "abeja_soldado", "wildfire", "infernal_bull", "zombie_tank"
         };
 
         for (String mob : mobs) {
@@ -300,7 +321,7 @@ public class ModEntityGeneration {
         addMobSpawn(ModEntities.Golem, 80, BiomeSelectors.foundInOverworld());
         addMobSpawn(ModEntities.Golem, 70, BiomeSelectors.foundInTheNether());
 
-        // Configuración especial para Skull con biomas específicos
+        // Special configuration for Skull with specific biomes
         addMobSpawn(ModEntities.Skull, 100, BiomeSelectors.foundInOverworld());
         addMobSpawn(ModEntities.Skull, 105, BiomeSelectors.foundInTheNether());
         addMobSpawn(ModEntities.Skull, 100, BiomeSelectors.includeByKey(
@@ -313,7 +334,7 @@ public class ModEntityGeneration {
                 BiomeKeys.SUNFLOWER_PLAINS
         ));
 
-        // Configuración especial para Barnacle en biomas acuáticos
+        // Special configuration for Barnacle in aquatic biomes
         addMobSpawn(ModEntities.BARNACLE, 80, BiomeSelectors.includeByKey(
                 BiomeKeys.OCEAN, BiomeKeys.DEEP_OCEAN, BiomeKeys.COLD_OCEAN,
                 BiomeKeys.DEEP_COLD_OCEAN, BiomeKeys.FROZEN_OCEAN,
@@ -329,9 +350,12 @@ public class ModEntityGeneration {
 
         addMobSpawn(ModEntities.Wildfire, 90, BiomeSelectors.foundInTheNether());
         addMobSpawn(ModEntities.Wildfire, 100, BiomeSelectors.foundInOverworld());
+
+        addMobSpawn(ModEntities.ZOMBIE_TANK, 70, BiomeSelectors.foundInOverworld());
+        addMobSpawn(ModEntities.ZOMBIE_TANK, 85, BiomeSelectors.foundInTheNether());
     }
 
-    // Método helper para añadir spawns de manera más limpia
+    // Helper method to add spawns more cleanly
     private static void addMobSpawn(EntityType<?> entityType, int weight, Predicate<BiomeSelectionContext> selector) {
         BiomeModifications.addSpawn(
                 selector,

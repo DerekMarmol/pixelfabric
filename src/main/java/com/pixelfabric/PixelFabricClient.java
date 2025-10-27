@@ -1,5 +1,6 @@
 package com.pixelfabric;
 
+import com.eliotlash.mclib.math.functions.classic.Mod;
 import com.pixelfabric.animation.RuletaAnimationSystem;
 import com.pixelfabric.block.ModBlocks;
 import com.pixelfabric.client.CreeperFlashEffect;
@@ -75,5 +76,10 @@ public class PixelFabricClient implements ClientModInitializer {
         EntityRendererRegistry.register(ModEntities.CANDLE_SWORD, Candle_SwordRenderer::new);
         EntityRendererRegistry.register(ModEntities.GENERATOR_ENTITY, GeneratorRenderer::new);
         EntityRendererRegistry.register(ModEntities.PINATA_BURRITO, PinataBurritoRenderer::new);
+        EntityRendererRegistry.register(ModEntities.ZOMBIE_TANK, ZombieTankRenderer::new);
+        EntityRendererRegistry.register(ModEntities.ANGRY_CHICKEN, AngryChickenRenderer::new);
+        EntityRendererRegistry.register(ModEntities.TOXIN_SPIDER, ToxinSpiderRenderer::new);
+        EntityRendererRegistry.register(ModEntities.TOXIN_PROJECTILE, ToxinProjectileRenderer::new);
+
     }
 }

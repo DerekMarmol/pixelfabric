@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "pixelfabric:wither_helmet",
+    "pixelfabric:wither_chestplate",
+    "pixelfabric:wither_leggins",
+    "pixelfabric:wither_boots",
+    "pixelfabric:summertime_helmet",
+    "pixelfabric:summertime_chestplate",
+    "pixelfabric:summertime_leggins",
+    "pixelfabric:summertime_boots"
+  ]
+}

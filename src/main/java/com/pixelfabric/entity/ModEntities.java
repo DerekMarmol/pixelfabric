@@ -180,5 +180,41 @@ public class ModEntities {
                     .build()
     );
 
+    public static final EntityType<ZombieTankEntity> ZOMBIE_TANK = Registry.register(
+            Registries.ENTITY_TYPE,
+            new Identifier(MOD_ID, "zombie_tank"),
+            FabricEntityTypeBuilder.create(SpawnGroup.MONSTER, ZombieTankEntity::new)
+                    .dimensions(EntityDimensions.fixed(2.0F, 2.9F)) // Más alto y ancho que zombies normales
+                    .build()
+    );
+
+    public static final EntityType<AngryChickenEntity> ANGRY_CHICKEN = Registry.register(
+            Registries.ENTITY_TYPE,
+            new Identifier("pixelfabric", "angry_chicken"),
+            FabricEntityTypeBuilder.createMob()
+                    .entityFactory(AngryChickenEntity::new)
+                    .spawnGroup(SpawnGroup.CREATURE)
+                    .dimensions(EntityDimensions.fixed(0.4f, 0.7f)) // igual que el pollo
+                    .build()
+    );
+
+    public static final EntityType<ToxinSpiderEntity> TOXIN_SPIDER = Registry.register(
+            Registries.ENTITY_TYPE,
+            new Identifier(MOD_ID, "toxin_spider"),
+            FabricEntityTypeBuilder.create(SpawnGroup.MONSTER, ToxinSpiderEntity::new)
+                    .dimensions(EntityDimensions.fixed(3f, 2f)) // 3 veces más grande que araña vanilla (1.4x0.9)
+                    .build()
+    );
+
+    public static final EntityType<ToxinProjectileEntity> TOXIN_PROJECTILE = Registry.register(
+            Registries.ENTITY_TYPE,
+            new Identifier(MOD_ID, "toxin_projectile"),
+            FabricEntityTypeBuilder.<ToxinProjectileEntity>create(SpawnGroup.MISC, ToxinProjectileEntity::new)
+                    .dimensions(EntityDimensions.fixed(0.5F, 0.5F))
+                    .trackRangeBlocks(10)
+                    .trackedUpdateRate(10)
+                    .build()
+    );
+
 
 }

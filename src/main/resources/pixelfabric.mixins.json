@@ -43,8 +43,21 @@
     "DoubleHealthMixin",
     "ResonanceMixin",
     "CreeperExplosionRangeMixin",
-    "PersistentFireMixin"
-
+    "PersistentFireMixin",
+    "InvertedControlsMixin",
+    "WitchPotionMixin",
+    "FragileShieldMixin",
+    "ShieldRepairMixin",
+    "VengefulMobsMixin",
+    "GluttonousZombiesMixin",
+    "ForcedSleepMixin",
+    "ExplosiveSheepMixin",
+    "KamikazeChickensMixin",
+    "PiercingArrowsMixin",
+    "InventoryWeightMixin",
+    "ExplosiveAllMobsMixin",
+    "ExplosiveCowMixin",
+    "ExplosivePigMixin"
   ],
   "client": [
     "ClientPlayNetworkHandlerMixin"

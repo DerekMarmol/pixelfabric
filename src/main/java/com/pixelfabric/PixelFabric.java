@@ -1,5 +1,6 @@
 package com.pixelfabric;
 
+import com.eliotlash.mclib.math.functions.classic.Mod;
 import com.pixelfabric.Enchantments.ModEnchantments;
 import com.pixelfabric.block.ModBlocks;
 import com.pixelfabric.callbacks.EntityKillCallback;
@@ -16,6 +17,8 @@ import com.pixelfabric.minigames.BingoGame;
 import com.pixelfabric.minigames.PinataMinigame;
 import com.pixelfabric.mission.KillTracker;
 import com.pixelfabric.mission.MissionManager;
+import com.pixelfabric.mixin.InventoryWeightMixin;
+import com.pixelfabric.mixin.PiercingArrowsMixin;
 import com.pixelfabric.network.CreeperFlashPacket;
 import com.pixelfabric.network.ModMessages;
 import com.pixelfabric.sound.ModSounds;
@@ -84,10 +87,6 @@ public class PixelFabric implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			ModSpawnCommands.register(dispatcher);
 		});
-		CommandRegistrationCallback.EVENT.register(PinataCommands::register);
-		EntityKillCallback.EVENT.register((player, entityType) -> {
-			KillTracker.trackKill(player, entityType);
-		});
 		ModAutoUpdater updater = new ModAutoUpdater("1.3.6");
 		updater.checkAndUpdate();
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
@@ -111,6 +110,7 @@ public class PixelFabric implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			DifficultyDatabase.closeDatabase();
 		});
+
 		//Cambios de dificultad
 		BetrayalMode.init();
 		UnreliableTotem.init();
@@ -129,10 +129,9 @@ public class PixelFabric implements ModInitializer {
 		ZombieX6Enhancement.init();
 		ZombieX9Enhancement.init();
 		PhantomEnhancementMechanic.init();
-		PhantomX6Enhancement.init();
-		CreeperFlashEnhancement.init();
 		SkeletonDamageX3Enhancement.init();
 		PhantomInventoryShuffleMechanic.init();
+        PhantomX6Enhancement.init();
 
 		//cambios dia 4
 		SprintHungerMechanic.init();
@@ -151,33 +150,81 @@ public class PixelFabric implements ModInitializer {
 		//cambios dia 14
 		CreeperExplosionMechanic.init();
 
+        CreeperFlashEnhancement.init();
+
 		//cambios dia 15
 		PersistentFireMechanic.init();
 
+        CorruptWitchMechanic.init();
+
+        FragileShieldsMechanic.init();
+
+        VengefulMobsMechanic.init();
+
+        GluttonousZombiesMechanic.init();
+        ForcedSleepMechanic.init();
+        ExplosiveSheepMechanic.init();
+        KamikazeChickensMechanic.init();
+        PiercingArrowsMechanic.init();
+        InventoryWeightMechanic.init();
+
+        ExplosivePigMechanic.init();
+        ExplosiveCowMechanic.init();
+        ExplosiveAllMobsMechanic.init();
+
+        //Entidades nuevas
+
 		FabricDefaultAttributeRegistry.register(CHAOS_PHANTOM, ChaosPhantomEntity.createChaosPhantomAttributes());
+
 		FabricDefaultAttributeRegistry.register(BONE_SPIDER, BoneSpiderEntity.createBoneSpiderAttributes());
+
 		FabricDefaultAttributeRegistry.register(ATURTED_PHANTOM, AturdedPhantomEntity.createAturtedPhantomAttributes());
+
 		FabricDefaultAttributeRegistry.register(MINER_ZOMBIE, MinerZombieEntity.createMinerZombieAttributes());
+
 		FabricDefaultAttributeRegistry.register(EXPLODING_SKELETON, ExplodingSkeletonEntity.createAbstractSkeletonAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.LAVASQUID, Lava_SquidEntity.setAttributes());
+
 		FabricDefaultAttributeRegistry.register(CANDIK, CandikEntity.setAttributes());
+
 		FabricDefaultAttributeRegistry.register(PINATA_BURRITO, PinataBurritoEntity.createAttributes());
+
 		FabricDefaultAttributeRegistry.register(MOOBLOOM,
 				MoobloomEntity.createCowAttributes()
 						.add(EntityAttributes.GENERIC_MAX_HEALTH, 12.0) // Más vida que una vaca normal
 						.add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.2));
+
 		FabricDefaultAttributeRegistry.register(INFERNAL_BULL, InfernalBullEntity.createAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.BARNACLE, BarnacleEntity.createDevourerAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.Skull, SkullEntity.createSkullAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.Owlbear, OwlbearEntity.setAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.Hellhound, HellhoundEntity.setAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.Soldier_Bee, Soldier_BeeEntity.setAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.Golem, GolemEntity.setAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.Wraith, WraithEntity.setAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.Pumpkin, PumpkinFiendeEntity.setAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.CANDLE_SWORD, Candle_SwordEntity.setAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.LAVA_SPIDER, Octana_ExplodeEntity.setAttributes());
+
 		FabricDefaultAttributeRegistry.register(ModEntities.Wildfire, WildfireEntity.createWildfireAttributes());
-	}
+
+        FabricDefaultAttributeRegistry.register(ZOMBIE_TANK, ZombieTankEntity.createAttributes());
+
+        FabricDefaultAttributeRegistry.register(ModEntities.ANGRY_CHICKEN, AngryChickenEntity.createAttributes());
+
+        FabricDefaultAttributeRegistry.register(ModEntities.TOXIN_SPIDER, ToxinSpiderEntity.createAttributes());
+
+    }
 
 }
